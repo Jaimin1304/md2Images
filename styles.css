@@ -1,0 +1,345 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  background: #0a0a0a;
+  color: #e0e0e0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 顶部工具栏 */
+.toolbar {
+  background: #1a1a1a;
+  border-bottom: 1px solid #333;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 50px;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar label {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.toolbar input[type="range"] {
+  width: 120px;
+  height: 4px;
+  background: #333;
+  outline: none;
+  border-radius: 2px;
+}
+
+.toolbar input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #00ff88;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.toolbar select {
+  background: #222;
+  border: 1px solid #444;
+  color: #e0e0e0;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.toolbar select:hover {
+  background: #333;
+  border-color: #00ff88;
+}
+
+.toolbar button {
+  background: #222;
+  border: 1px solid #444;
+  color: #e0e0e0;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.toolbar button:hover {
+  background: #333;
+  border-color: #00ff88;
+}
+
+.export-btn {
+  background: #00ff88 !important;
+  color: #000 !important;
+  border-color: #00ff88 !important;
+  font-weight: bold;
+}
+
+.export-btn:hover {
+  background: #00cc6a !important;
+}
+
+/* 主内容区域 */
+.main-container {
+  display: flex;
+  height: calc(100vh - 50px);
+}
+
+/* 左侧输入区 */
+.input-panel {
+  width: 50%;
+  background: #111;
+  border-right: 1px solid #333;
+}
+
+.input-textarea {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  color: #e0e0e0;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 20px;
+  resize: none;
+  outline: none;
+}
+
+.input-textarea::placeholder {
+  color: #555;
+}
+
+/* 右侧预览区 */
+.preview-panel {
+  width: 50%;
+  background: #0f0f0f;
+  overflow: auto;
+  position: relative;
+}
+
+.preview-content {
+  background: #ffffff;
+  color: #000000;
+  margin: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+/* Markdown 样式 - 明亮主题 (默认) */
+.markdown-body {
+  padding: 30px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  word-wrap: break-word;
+  color: #24292e;
+  background: #ffffff;
+}
+
+/* Markdown 样式 - 暗黑主题 */
+.markdown-body.theme-dark {
+  color: #e1e4e8;
+  background: #0d1117;
+}
+
+.markdown-body.theme-dark h1,
+.markdown-body.theme-dark h2,
+.markdown-body.theme-dark h3,
+.markdown-body.theme-dark h4,
+.markdown-body.theme-dark h5,
+.markdown-body.theme-dark h6 {
+  color: #f0f6fc;
+}
+
+.markdown-body.theme-dark h1,
+.markdown-body.theme-dark h2 {
+  border-bottom: 1px solid #30363d;
+}
+
+.markdown-body.theme-dark code {
+  background: #161b22;
+  color: #e1e4e8;
+}
+
+.markdown-body.theme-dark pre {
+  background: #161b22;
+}
+
+.markdown-body.theme-dark blockquote {
+  border-left: 4px solid #30363d;
+  color: #8b949e;
+}
+
+.markdown-body.theme-dark a {
+  color: #58a6ff;
+}
+
+.markdown-body.theme-dark strong {
+  color: #f0f6fc;
+}
+
+/* 更新预览容器的背景色 */
+.preview-content.theme-dark {
+  background: #0d1117;
+  color: #e1e4e8;
+}
+
+.markdown-body h1,
+.markdown-body h2 {
+  border-bottom: 1px solid #eaecef;
+  padding-bottom: 10px;
+  margin-top: 24px;
+  margin-bottom: 16px;
+}
+
+.markdown-body h1 {
+  font-size: 2em;
+}
+
+.markdown-body h2 {
+  font-size: 1.5em;
+}
+
+.markdown-body h3 {
+  font-size: 1.25em;
+  margin-top: 24px;
+  margin-bottom: 16px;
+}
+
+.markdown-body p {
+  margin-bottom: 16px;
+}
+
+.markdown-body code {
+  background: #f6f8fa;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: "Consolas", "Monaco", monospace;
+  font-size: 85%;
+}
+
+.markdown-body pre {
+  background: #f6f8fa;
+  padding: 16px;
+  border-radius: 6px;
+  overflow: auto;
+  margin-bottom: 16px;
+}
+
+.markdown-body pre code {
+  background: none;
+  padding: 0;
+}
+
+.markdown-body blockquote {
+  border-left: 4px solid #dfe2e5;
+  padding-left: 16px;
+  color: #6a737d;
+  margin-bottom: 16px;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin-bottom: 16px;
+  padding-left: 24px;
+}
+
+.markdown-body li {
+  margin-bottom: 4px;
+}
+
+/* 分割线样式 */
+.divider-line {
+  width: 100%;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    #ff0080 0px,
+    #ff0080 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  margin: 20px 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.divider-line::before {
+  content: "✂️ CUT LINE";
+  position: absolute;
+  right: 10px;
+  top: -20px;
+  font-size: 10px;
+  color: #ff0080;
+  font-weight: bold;
+}
+
+.divider-line:hover {
+  background: repeating-linear-gradient(
+    90deg,
+    #ff0080 0px,
+    #ff0080 15px,
+    transparent 15px,
+    transparent 25px
+  );
+}
+
+/* 宽度指示器 */
+.width-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #00ff88;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: monospace;
+}
+
+/* 消息提示动画 */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}

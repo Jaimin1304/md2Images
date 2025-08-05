@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown to Image</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  </head>
+  <body>
+    <!-- 顶部工具栏 -->
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <label>Width:</label>
+        <input
+          type="range"
+          id="widthSlider"
+          min="300"
+          max="1200"
+          value="600"
+          step="50"
+        />
+        <span id="widthValue">600px</span>
+      </div>
+
+      <div class="toolbar-group">
+        <label>Theme:</label>
+        <select id="themeSelector" onchange="changeTheme()">
+          <option value="light">light</option>
+          <option value="dark">dark</option>
+        </select>
+      </div>
+
+      <div class="toolbar-group">
+        <button onclick="insertDivider()">Add Cut Line</button>
+        <button onclick="removeDividers()">Clear Lines</button>
+      </div>
+
+      <div class="toolbar-group" style="margin-left: auto">
+        <button class="export-btn" onclick="exportImages()">
+          📸 Export PNG
+        </button>
+      </div>
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-container">
+      <!-- 左侧输入面板 -->
+      <div class="input-panel">
+        <textarea
+          class="input-textarea"
+          id="markdownInput"
+          oninput="updatePreview()"
+        >
+# Markdown to Image 转换工具
+
+这是一个简单而强大的 **Markdown 转图片** 工具，让您轻松将文本转换为精美的图片。
+
+## 主要功能
+
+- ✨ **实时预览** - 输入 Markdown 文本，立即看到渲染效果
+- 🎨 **主题选择** - 支持明亮和暗黑两种渲染风格
+- 📏 **自定义宽度** - 300px 到 1200px 任意调节图片宽度
+- ✂️ **智能分割** - 使用 `---` 分割线将长文分段导出
+- 📦 **批量导出** - 自动打包为 ZIP 文件，方便下载
+
+## 使用方法
+
+1. 在左侧编辑器中输入您的 Markdown 内容
+2. 右侧实时预览渲染效果
+3. 调整图片宽度和主题风格
+4. 点击 **Export PNG** 按钮导出图片
+
+---
+
+> **提示**: 输入 `---` 可以添加分割线，用于将长文档分段导出为多个图片文件。
+      </textarea
+        >
+      </div>
+
+      <!-- 右侧预览面板 -->
+      <div class="preview-panel">
+        <div class="preview-content" id="previewContent">
+          <div class="markdown-body" id="markdownOutput"></div>
+          <div class="width-indicator" id="widthIndicator">600px</div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
