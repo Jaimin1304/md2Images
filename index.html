@@ -3,11 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Markdown to Image</title>
+    <title>Markdown to Image - 数学公式增强版</title>
     <link rel="stylesheet" href="styles.css" />
+
+    <!-- KaTeX CSS for math formula rendering -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css"
+    />
+
+    <!-- Existing libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <!-- KaTeX JavaScript libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
   </head>
   <body>
     <!-- 顶部工具栏 -->
@@ -56,7 +68,7 @@
         >
 # Markdown to Image 转换工具
 
-这是一个简单而强大的 **Markdown 转图片** 工具，让您轻松将文本转换为精美的图片。
+这是一个支持 **数学公式渲染** 的 Markdown 转图片工具，让您轻松将包含数学表达式的文本转换为精美图片。
 
 ## 主要功能
 
@@ -65,17 +77,35 @@
 - 📏 **自定义宽度** - 300px 到 1200px 任意调节图片宽度
 - ✂️ **智能分割** - 使用 `---` 分割线将长文分段导出
 - 📦 **批量导出** - 自动打包为 ZIP 文件，方便下载
+- 🔢 **数学公式** - 支持 LaTeX 数学表达式渲染
+
+## 数学公式示例
+
+### 行内公式
+爱因斯坦的质能方程 \(E = mc^2\) 是物理学中最著名的公式之一。
+
+### 块级公式
+二次方程的求根公式：
+\[
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+\]
+
+### 复杂公式
+正态分布的概率密度函数：
+\[
+f(x) = \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{(x-\mu)^2}{2\sigma^2}}
+\]
+
+---
 
 ## 使用方法
 
 1. 在左侧编辑器中输入您的 Markdown 内容
-2. 右侧实时预览渲染效果
-3. 调整图片宽度和主题风格
-4. 点击 **Export PNG** 按钮导出图片
-
----
-
-> **提示**: 输入 `---` 可以添加分割线，用于将长文档分段导出为多个图片文件。
+2. 使用 `\( ... \)` 表示行内公式，`\[ ... \]` 表示块级公式
+3. 右侧实时预览渲染效果
+4. 调整图片宽度和主题风格
+5. 点击 **Export PNG** 按钮导出图片
+6. 输入 `---` 可以添加分割线，用于将长文档分段导出为多个图片文件
       </textarea
         >
       </div>

@@ -53,7 +53,7 @@ function applyTheme(theme) {
   }
 }
 
-// 更新预览内容 - 重新设计分割线处理逻辑
+// 更新预览内容 - 增强版：支持数学公式渲染
 function updatePreview() {
   const input = document.getElementById("markdownInput").value
   const output = document.getElementById("markdownOutput")
@@ -66,13 +66,41 @@ function updatePreview() {
       return
     }
 
-    // 渲染标准 markdown（不做预处理，让marked.js正常处理）
-    const html = marked.parse(input)
+    // 预处理：保护数学公式不被Markdown解析器破坏
+    // 将\[...\]和\(...\)替换为临时占位符
+    let processedText = input
+    const mathBlocks = []
+    const mathInlines = []
 
-    // 检查渲染结果是否有效
-    if (!html || html.trim() === "") {
-      throw new Error("Markdown 内容渲染结果为空")
-    }
+    // 保存块级数学公式
+    processedText = processedText.replace(
+      /\\\[([\s\S]*?)\\\]/g,
+      (match, formula) => {
+        mathBlocks.push(formula)
+        return `%%MATHBLOCK${mathBlocks.length - 1}%%`
+      }
+    )
+
+    // 保存行内数学公式
+    processedText = processedText.replace(
+      /\\\(([\s\S]*?)\\\)/g,
+      (match, formula) => {
+        mathInlines.push(formula)
+        return `%%MATHINLINE${mathInlines.length - 1}%%`
+      }
+    )
+
+    // 使用marked解析Markdown
+    let html = marked.parse(processedText)
+
+    // 还原数学公式
+    html = html.replace(/%%MATHBLOCK(\d+)%%/g, (match, index) => {
+      return `\\[${mathBlocks[index]}\\]`
+    })
+
+    html = html.replace(/%%MATHINLINE(\d+)%%/g, (match, index) => {
+      return `\\(${mathInlines[index]}\\)`
+    })
 
     // 设置渲染结果
     output.innerHTML = html
@@ -80,32 +108,44 @@ function updatePreview() {
     // 应用当前主题
     applyTheme(currentTheme)
 
-    // 后处理：将标准的 <hr> 标签替换为我们的自定义分割线
-    // 这样做的好处是用户可以使用标准的 --- 语法，而我们在显示时转换为可视化的分割线
+    // 使用KaTeX渲染数学公式
+    // renderMathInElement是KaTeX的自动渲染函数，会查找并渲染所有数学公式
+    renderMathInElement(output, {
+      delimiters: [
+        { left: "\\[", right: "\\]", display: true }, // LaTeX块级公式
+        { left: "\\(", right: "\\)", display: false }, // LaTeX行内公式
+      ],
+      throwOnError: false, // 遇到错误不抛出异常，而是显示错误信息
+      errorColor: "#ff6b6b", // 错误显示颜色
+      strict: false, // 宽松模式
+      trust: true, // 信任所有输入（内部使用）
+    })
+
+    // 后处理：将标准的 <hr> 标签替换为自定义分割线
     const hrElements = output.querySelectorAll("hr")
     hrElements.forEach((hr) => {
       const dividerLine = document.createElement("div")
       dividerLine.className = "divider-line"
-      dividerLine.setAttribute("data-divider", "true") // 添加标记用于后续识别
+      dividerLine.setAttribute("data-divider", "true")
       hr.parentNode.replaceChild(dividerLine, hr)
     })
   } catch (error) {
     console.error("Markdown parsing error:", error)
     output.innerHTML = `
-                <div style="color: #ff6b6b; background: #2a1f1f; padding: 20px; border-radius: 8px; border-left: 4px solid #ff6b6b;">
-                    <h4 style="margin: 0 0 10px 0; color: #ff6b6b;">⚠️ Markdown 格式解析异常</h4>
-                    <p style="margin: 0; font-size: 14px; line-height: 1.5;">
-                        当前输入的文本无法正确解析为 Markdown 格式。请检查语法是否正确，
-                        特别注意标题、代码块、列表等元素的格式规范。
-                    </p>
-                    <details style="margin-top: 10px;">
-                        <summary style="cursor: pointer; color: #ff8a8a;">查看技术详情</summary>
-                        <code style="display: block; margin-top: 8px; padding: 8px; background: #1a1a1a; border-radius: 4px; font-size: 12px;">
-                            ${error.message}
-                        </code>
-                    </details>
-                </div>
-            `
+      <div style="color: #ff6b6b; background: #2a1f1f; padding: 20px; border-radius: 8px; border-left: 4px solid #ff6b6b;">
+        <h4 style="margin: 0 0 10px 0; color: #ff6b6b;">⚠️ Markdown 格式解析异常</h4>
+        <p style="margin: 0; font-size: 14px; line-height: 1.5;">
+          当前输入的文本无法正确解析。请检查语法是否正确，
+          特别注意数学公式的格式（使用 \( ... \) 表示行内公式，\[ ... \] 表示块级公式）。
+        </p>
+        <details style="margin-top: 10px;">
+          <summary style="cursor: pointer; color: #ff8a8a;">查看技术详情</summary>
+          <code style="display: block; margin-top: 8px; padding: 8px; background: #1a1a1a; border-radius: 4px; font-size: 12px;">
+            ${error.message}
+          </code>
+        </details>
+      </div>
+    `
   }
 }
 
@@ -132,7 +172,7 @@ function removeDividers() {
   updatePreview()
 }
 
-// 导出图片主函数 - 增强异常处理
+// 导出图片主函数 - 支持数学公式
 async function exportImages() {
   try {
     // 第一步：验证基础条件
@@ -154,7 +194,7 @@ async function exportImages() {
       return
     }
 
-    // 第二步：检查是否包含实际内容（不只是提示文本）
+    // 第二步：检查是否包含实际内容
     const hasRealContent = Array.from(markdownBody.children).some((child) => {
       return (
         child.textContent.trim() &&
@@ -174,11 +214,14 @@ async function exportImages() {
     // 第三步：显示导出进度提示
     showUserMessage("正在生成图片，请稍候...", "info")
 
+    // 等待数学公式渲染完成
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
     const dividers = previewContent.querySelectorAll(".divider-line")
 
     if (dividers.length === 0) {
       // 没有分割线，导出整个内容
-      await exportSingleImage(previewContent, "markdown-export.png")
+      await exportSingleImage(previewContent, "mdImage.png")
       showUserMessage("图片导出成功！", "success")
     } else {
       // 有分割线，分段导出
@@ -188,18 +231,12 @@ async function exportImages() {
   } catch (error) {
     console.error("Export error:", error)
 
-    // 根据不同错误类型给出具体的用户提示
     let userMessage = "图片导出过程中发生异常"
 
     if (error.name === "SecurityError") {
-      userMessage =
-        "由于浏览器安全限制，无法生成图片。请尝试使用其他浏览器或检查页面权限设置"
+      userMessage = "由于浏览器安全限制，无法生成图片。请尝试使用其他浏览器"
     } else if (error.message.includes("html2canvas")) {
-      userMessage =
-        "图片渲染引擎出现问题，请刷新页面后重试。如果问题持续存在，请检查网络连接"
-    } else if (error.message.includes("Canvas")) {
-      userMessage =
-        "画布创建失败，可能是内容过大或浏览器内存不足。尝试减少内容长度或重启浏览器"
+      userMessage = "图片渲染引擎出现问题，请刷新页面后重试"
     } else {
       userMessage = `导出失败：${error.message}`
     }
@@ -208,13 +245,13 @@ async function exportImages() {
   }
 }
 
-// 导出单个图片 - 返回图片数据而不是直接下载
+// 导出单个图片 - 增强数学公式支持
 async function exportSingleImage(element, filename, returnData = false) {
   if (!element) {
     throw new Error("导出元素不存在")
   }
 
-  // 确保元素在视窗中可见（这是解决空白图片的关键步骤）
+  // 确保元素在视窗中可见
   const originalStyles = {
     position: element.style.position,
     left: element.style.left,
@@ -222,17 +259,16 @@ async function exportSingleImage(element, filename, returnData = false) {
     visibility: element.style.visibility,
   }
 
-  // 临时将元素移到可见区域
   element.style.position = "static"
   element.style.left = "auto"
   element.style.top = "auto"
   element.style.visibility = "visible"
 
-  // 安全地获取需要临时隐藏的装饰元素
+  // 获取需要临时隐藏的装饰元素
   const widthIndicator = element.querySelector(".width-indicator")
   const dividers = element.querySelectorAll(".divider-line")
 
-  // 临时隐藏装饰元素，确保导出纯净内容
+  // 临时隐藏装饰元素
   const hiddenElements = []
   if (widthIndicator) {
     hiddenElements.push({
@@ -250,8 +286,8 @@ async function exportSingleImage(element, filename, returnData = false) {
   })
 
   try {
-    // 等待元素重新渲染
-    await new Promise((resolve) => setTimeout(resolve, 200))
+    // 等待元素重新渲染（包括数学公式）
+    await new Promise((resolve) => setTimeout(resolve, 300))
 
     // 获取元素的实际尺寸
     const rect = element.getBoundingClientRect()
@@ -265,7 +301,7 @@ async function exportSingleImage(element, filename, returnData = false) {
     const canvasBg = currentTheme === "dark" ? "#0d1117" : "#ffffff"
     const canvas = await html2canvas(element, {
       backgroundColor: canvasBg,
-      scale: 2, // 高分辨率输出
+      scale: 2, // 高分辨率输出，确保数学公式清晰
       useCORS: true,
       allowTaint: true,
       logging: false,
@@ -275,6 +311,12 @@ async function exportSingleImage(element, filename, returnData = false) {
       scrollY: 0,
       windowWidth: rect.width,
       windowHeight: rect.height,
+      // 忽略某些可能导致问题的元素
+      ignoreElements: (element) => {
+        return (
+          element.classList && element.classList.contains("width-indicator")
+        )
+      },
     })
 
     if (!canvas || canvas.width === 0 || canvas.height === 0) {
@@ -285,7 +327,6 @@ async function exportSingleImage(element, filename, returnData = false) {
 
     // 根据 returnData 参数决定返回数据还是直接下载
     if (returnData) {
-      // 返回图片的二进制数据，用于打包到ZIP文件
       return new Promise((resolve) => {
         canvas.toBlob(
           (blob) => {
@@ -296,7 +337,6 @@ async function exportSingleImage(element, filename, returnData = false) {
         )
       })
     } else {
-      // 直接下载图片（单图片模式）
       const dataURL = canvas.toDataURL("image/png", 1.0)
       if (!dataURL || dataURL === "data:," || dataURL.length < 100) {
         throw new Error("图片数据生成失败或为空")
@@ -327,14 +367,13 @@ async function exportSingleImage(element, filename, returnData = false) {
   }
 }
 
-// 导出多个图片并打包为ZIP - 重新设计的批量下载系统
+// 导出多个图片并打包为ZIP - 支持数学公式
 async function exportMultipleImages(element, dividers) {
   const markdownBody = element.querySelector(".markdown-body")
   if (!markdownBody) {
     throw new Error("无法找到 Markdown 内容区域")
   }
 
-  // 获取所有直接子元素（不包括分割线本身）
   const allElements = Array.from(markdownBody.children)
   console.log("All elements found:", allElements.length)
 
@@ -367,13 +406,12 @@ async function exportMultipleImages(element, dividers) {
         sections.push(sectionElements)
       }
     }
-    startIndex = dividerIndex + 1 // 跳过分割线本身
+    startIndex = dividerIndex + 1
   })
 
-  // 处理最后一段内容（最后一个分割线之后的内容）
+  // 处理最后一段内容
   if (startIndex < allElements.length) {
     const lastSection = allElements.slice(startIndex)
-    // 过滤掉分割线元素
     const filteredLastSection = lastSection.filter(
       (elem) =>
         !elem.classList.contains("divider-line") &&
@@ -390,9 +428,8 @@ async function exportMultipleImages(element, dividers) {
     throw new Error("分割后没有有效的内容段落")
   }
 
-  // 创建ZIP打包器 - 这是解决多文件下载问题的核心
+  // 创建ZIP打包器
   const zip = new JSZip()
-  const imagePromises = []
   let successCount = 0
 
   // 为每个段落生成图片数据
@@ -420,16 +457,16 @@ async function exportMultipleImages(element, dividers) {
       const tempContainer = document.createElement("div")
       const containerBg = currentTheme === "dark" ? "#0d1117" : "#ffffff"
       tempContainer.style.cssText = `
-                    background: ${containerBg};
-                    width: ${currentWidth}px;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                    position: absolute;
-                    left: -9999px;
-                    top: 0;
-                    visibility: visible;
-                    z-index: -1;
-                `
+        background: ${containerBg};
+        width: ${currentWidth}px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        visibility: visible;
+        z-index: -1;
+      `
 
       const tempBody = document.createElement("div")
       tempBody.className = "markdown-body"
@@ -437,12 +474,12 @@ async function exportMultipleImages(element, dividers) {
         tempBody.classList.add("theme-dark")
       }
       tempBody.style.cssText = `
-                    padding: 30px;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-                    font-size: 16px;
-                    line-height: 1.6;
-                    word-wrap: break-word;
-                `
+        padding: 30px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        word-wrap: break-word;
+      `
 
       // 深度复制内容并保持样式
       validElements.forEach((elem) => {
@@ -453,15 +490,24 @@ async function exportMultipleImages(element, dividers) {
       tempContainer.appendChild(tempBody)
       document.body.appendChild(tempContainer)
 
-      // 等待DOM完全渲染
-      await new Promise((resolve) => setTimeout(resolve, 300))
+      // 重新渲染数学公式（关键步骤！）
+      renderMathInElement(tempBody, {
+        delimiters: [
+          { left: "\\[", right: "\\]", display: true },
+          { left: "\\(", right: "\\)", display: false },
+        ],
+        throwOnError: false,
+        errorColor: "#ff6b6b",
+      })
 
-      // 生成图片数据（不直接下载，而是收集到数组中）
-      const filename = `markdown-part-${String(i + 1).padStart(2, "0")}.png`
+      // 等待DOM和数学公式完全渲染
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      // 生成图片数据
+      const filename = `mdImage_${String(i + 1).padStart(2, "0")}.png`
       const imageData = await exportSingleImage(tempContainer, filename, true)
 
       if (imageData && imageData.blob) {
-        // 将图片数据添加到ZIP文件中
         zip.file(imageData.filename, imageData.blob)
         successCount++
         console.log(`Section ${i + 1} added to ZIP successfully`)
@@ -470,11 +516,10 @@ async function exportMultipleImages(element, dividers) {
       // 清理临时容器
       document.body.removeChild(tempContainer)
 
-      // 在段落之间添加短暂延迟，避免浏览器过载
+      // 在段落之间添加短暂延迟
       await new Promise((resolve) => setTimeout(resolve, 100))
     } catch (sectionError) {
       console.error(`导出第 ${i + 1} 段时出错:`, sectionError)
-      // 继续处理其他段落
     }
   }
 
@@ -488,19 +533,17 @@ async function exportMultipleImages(element, dividers) {
     const zipBlob = await zip.generateAsync({
       type: "blob",
       compression: "DEFLATE",
-      compressionOptions: { level: 6 }, // 平衡压缩率和速度
+      compressionOptions: { level: 6 },
     })
 
-    // 创建下载链接
     const link = document.createElement("a")
     link.href = URL.createObjectURL(zipBlob)
-    link.download = `mdImage_${new Date().toISOString().slice(0, 10)}.zip`
+    link.download = `mdImages_${new Date().toISOString().slice(0, 10)}.zip`
     link.style.display = "none"
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
 
-    // 清理对象URL以释放内存
     setTimeout(() => {
       URL.revokeObjectURL(link.href)
     }, 1000)
@@ -556,21 +599,21 @@ function showUserMessage(message, type = "info") {
   const style = styles[type] || styles.info
 
   messageEl.style.cssText = `
-            position: fixed;
-            top: 70px;
-            right: 20px;
-            background: ${style.bg};
-            border: 1px solid ${style.border};
-            color: ${style.text};
-            padding: 12px 16px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-family: inherit;
-            z-index: 1000;
-            max-width: 350px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            animation: slideIn 0.3s ease-out;
-        `
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    background: ${style.bg};
+    border: 1px solid ${style.border};
+    color: ${style.text};
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    z-index: 1000;
+    max-width: 350px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    animation: slideIn 0.3s ease-out;
+  `
 
   messageEl.innerHTML = `${style.icon} ${message}`
   document.body.appendChild(messageEl)
@@ -580,15 +623,15 @@ function showUserMessage(message, type = "info") {
     const styleSheet = document.createElement("style")
     styleSheet.id = "message-animations"
     styleSheet.textContent = `
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-                @keyframes slideOut {
-                    from { transform: translateX(0); opacity: 1; }
-                    to { transform: translateX(100%); opacity: 0; }
-                }
-            `
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `
     document.head.appendChild(styleSheet)
   }
 
@@ -605,7 +648,7 @@ function showUserMessage(message, type = "info") {
       }
     },
     type === "error" ? 5000 : 3000
-  ) // 错误消息显示更长时间
+  )
 }
 
 // 页面加载完成后初始化

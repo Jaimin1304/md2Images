@@ -272,7 +272,68 @@ body {
   margin-bottom: 4px;
 }
 
-/* 分割线样式 */
+/* ========== 数学公式样式增强 ========== */
+/* KaTeX 数学公式的基础样式调整 */
+.katex {
+  font-size: 1.1em; /* 稍微增大公式字体 */
+  color: inherit; /* 继承父元素颜色 */
+}
+
+/* 块级数学公式样式 */
+.katex-display {
+  margin: 20px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 10px 0;
+}
+
+/* 滚动条样式（用于长公式） */
+.katex-display::-webkit-scrollbar {
+  height: 6px;
+}
+
+.katex-display::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.katex-display::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.katex-display::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* 暗黑主题下的数学公式样式 */
+.markdown-body.theme-dark .katex {
+  color: #e1e4e8;
+}
+
+/* 数学公式错误提示样式 */
+.katex-error {
+  color: #ff6b6b !important;
+  font-weight: bold;
+}
+
+/* 行内数学公式的垂直对齐调整 */
+.katex-inline {
+  vertical-align: middle;
+}
+
+/* 确保数学公式在表格中正确显示 */
+td .katex,
+th .katex {
+  white-space: nowrap;
+}
+
+/* 数学公式在列表中的间距调整 */
+li .katex-display {
+  margin: 10px 0;
+}
+
+/* ========== 分割线样式 ========== */
 .divider-line {
   width: 100%;
   height: 2px;
@@ -341,5 +402,33 @@ body {
   to {
     transform: translateX(100%);
     opacity: 0;
+  }
+}
+
+/* ========== 响应式设计优化 ========== */
+@media (max-width: 768px) {
+  .main-container {
+    flex-direction: column;
+  }
+
+  .input-panel,
+  .preview-panel {
+    width: 100%;
+    height: 50%;
+  }
+
+  .input-panel {
+    border-right: none;
+    border-bottom: 1px solid #333;
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px;
+  }
+
+  .toolbar-group {
+    margin: 5px 0;
   }
 }
